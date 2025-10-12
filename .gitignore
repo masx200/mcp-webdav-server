@@ -40,3 +40,4 @@ coverage/
 # Miscellaneous
 .tmp/
 .temp/
+.claude
