@@ -1,6 +1,6 @@
 {
-  "name": "webdav-mcp-server",
-  "version": "1.0.4",
+  "name": "@masx200/webdav-mcp-server",
+  "version": "1.1.0",
   "description": "A Model Context Protocol server for WebDAV operations with basic authentication",
   "type": "module",
   "main": "dist/index.js",
@@ -39,12 +39,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LaubPlusCo/mcp-webdav-server"
+    "url": "https://github.com/masx200/mcp-webdav-server"
   },
   "bugs": {
-    "url": "https://github.com/LaubPlusCo/mcp-webdav-server/issues"
+    "url": "https://github.com/masx200/mcp-webdav-server/issues"
   },
-  "homepage": "https://github.com/LaubPlusCo/mcp-webdav-server/#readme",
+  "homepage": "https://github.com/masx200/mcp-webdav-server/#readme",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",

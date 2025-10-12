@@ -40,7 +40,7 @@ npx webdav-mcp-server
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/webdav-mcp-server.git
+git clone https://github.com/masx200/webdav-mcp-server.git
 cd webdav-mcp-server
 
 # Install dependencies
@@ -61,7 +61,7 @@ docker run -p 3000:3000 \
   -e WEBDAV_ROOT_URL=http://your-webdav-server \
   -e WEBDAV_ROOT_PATH=/webdav \
   webdav-mcp-server
-  
+
 # Run the container with authentication for both WebDAV and MCP server
 docker run -p 3000:3000 \
   -e WEBDAV_ROOT_URL=http://your-webdav-server \
@@ -111,6 +111,7 @@ For enhanced security of the MCP server (not WebDAV connections), you can use
 bcrypt-encrypted passwords instead of storing them in plain text:
 
 1. Generate a bcrypt hash:
+
    ```bash
    # Using the built-in utility
    npm run generate-hash -- yourpassword
@@ -563,7 +564,7 @@ MIT
 
 ## 使用示例
 
-### 1. 读取文件前10行
+### 1. 读取文件前 10 行
 
 ```typescript
 const result = await toolHandler("webdav_read_remote_file", {
@@ -587,7 +588,7 @@ const result = await toolHandler("webdav_edit_remote_file", {
 });
 ```
 
-### 3. 搜索所有JavaScript文件
+### 3. 搜索所有 JavaScript 文件
 
 ```typescript
 const result = await toolHandler("webdav_search_files", {
@@ -647,7 +648,7 @@ const result = await toolHandler("webdav_list_directory_with_sizes", {
 
 ### 向后兼容
 
-- **现有API**: 保持所有现有工具和API不变
+- **现有 API**: 保持所有现有工具和 API 不变
 - **渐进增强**: 新功能作为可选参数添加
 - **默认行为**: 保持原有默认行为不变
 
