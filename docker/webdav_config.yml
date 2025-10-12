@@ -44,7 +44,7 @@ users:
   - username: admin
     password: admin
     permissions: CRUD
-  
+
   # Read-only user
   - username: reader
     password: reader

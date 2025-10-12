@@ -2,7 +2,7 @@
  * Logger utility that uses the MCP SDK's logging mechanism
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 
 // Global server reference for logging
 let globalMcpServer: Server | null = null;
@@ -48,17 +48,17 @@ export class Logger {
     if (data === undefined) {
       return message;
     }
-    
+
     try {
       // Handle various data types
-      if (typeof data === 'string') {
+      if (typeof data === "string") {
         return `${message} ${data}`;
       } else if (data instanceof Error) {
-        return `${message} ${data.message}\n${data.stack || ''}`;
+        return `${message} ${data.message}\n${data.stack || ""}`;
       } else {
         return {
           message,
-          data
+          data,
         };
       }
     } catch (err) {
@@ -71,12 +71,12 @@ export class Logger {
    */
   private sendLogMessage(level: string, message: string, data?: any): void {
     if (!this.server || !this.isLoggingSupported()) return;
-    
+
     try {
       this.server.sendLoggingMessage({
         level: level as any,
         logger: this.context,
-        data: this.formatData(message, data)
+        data: this.formatData(message, data),
       }).catch(() => {
         // Silently ignore any errors
       });
@@ -89,34 +89,37 @@ export class Logger {
    * Log an error message
    */
   error(message: string, data?: any): void {
-    this.sendLogMessage('error', message, data);
+    this.sendLogMessage("error", message, data);
   }
 
   /**
    * Log a warning message
    */
   warn(message: string, data?: any): void {
-    this.sendLogMessage('warning', message, data);
+    this.sendLogMessage("warning", message, data);
   }
 
   /**
    * Log an info message
    */
   info(message: string, data?: any): void {
-    this.sendLogMessage('info', message, data);
+    this.sendLogMessage("info", message, data);
   }
 
   /**
    * Log a debug message
    */
   debug(message: string, data?: any): void {
-    this.sendLogMessage('debug', message, data);
+    this.sendLogMessage("debug", message, data);
   }
 }
 
 /**
  * Create a new logger with the given context
  */
-export function createLogger(context: string, options: LoggerOptions = {}): Logger {
+export function createLogger(
+  context: string,
+  options: LoggerOptions = {},
+): Logger {
   return new Logger(context, options);
 }

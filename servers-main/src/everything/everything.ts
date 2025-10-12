@@ -16,6 +16,7 @@ import {
   LoggingLevel,
   ReadResourceRequestSchema,
   Resource,
+  type Root,
   RootsListChangedNotificationSchema,
   ServerNotification,
   ServerRequest,
@@ -23,7 +24,6 @@ import {
   Tool,
   ToolSchema,
   UnsubscribeRequestSchema,
-  type Root
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -42,7 +42,10 @@ type ToolInput = z.infer<typeof ToolInputSchema>;
 const ToolOutputSchema = ToolSchema.shape.outputSchema;
 type ToolOutput = z.infer<typeof ToolOutputSchema>;
 
-type SendRequest = RequestHandlerExtra<ServerRequest, ServerNotification>["sendRequest"];
+type SendRequest = RequestHandlerExtra<
+  ServerRequest,
+  ServerNotification
+>["sendRequest"];
 
 /* Input schemas for tools implemented in this server */
 const EchoSchema = z.object({
@@ -127,11 +130,13 @@ const StructuredContentSchema = {
     humidity: z
       .number()
       .describe("Humidity percentage"),
-  })
+  }),
 };
 
 const ZipResourcesInputSchema = z.object({
-  files: z.record(z.string().url().describe("URL of the file to include in the zip")).describe("Mapping of file names to URLs to include in the zip"),
+  files: z.record(
+    z.string().url().describe("URL of the file to include in the zip"),
+  ).describe("Mapping of file names to URLs to include in the zip"),
 });
 
 enum ToolName {
@@ -147,7 +152,7 @@ enum ToolName {
   GET_RESOURCE_LINKS = "getResourceLinks",
   STRUCTURED_CONTENT = "structuredContent",
   ZIP_RESOURCES = "zip",
-  LIST_ROOTS = "listRoots"
+  LIST_ROOTS = "listRoots",
 }
 
 enum PromptName {
@@ -176,10 +181,10 @@ export const createServer = () => {
         resources: { subscribe: true },
         tools: {},
         logging: {},
-        completions: {}
+        completions: {},
       },
-      instructions
-    }
+      instructions,
+    },
   );
 
   let subscriptions: Set<string> = new Set();
@@ -195,36 +200,48 @@ export const createServer = () => {
   let clientSupportsRoots = false;
   let sessionId: string | undefined;
 
-    // Function to start notification intervals when a client connects
-  const startNotificationIntervals = (sid?: string|undefined) => {
-      sessionId = sid;
-      if (!subsUpdateInterval) {
-        subsUpdateInterval = setInterval(() => {
-          for (const uri of subscriptions) {
-            server.notification({
-              method: "notifications/resources/updated",
-              params: { uri },
-            });
-          }
-        }, 10000);
-      }
+  // Function to start notification intervals when a client connects
+  const startNotificationIntervals = (sid?: string | undefined) => {
+    sessionId = sid;
+    if (!subsUpdateInterval) {
+      subsUpdateInterval = setInterval(() => {
+        for (const uri of subscriptions) {
+          server.notification({
+            method: "notifications/resources/updated",
+            params: { uri },
+          });
+        }
+      }, 10000);
+    }
 
-      const maybeAppendSessionId = sessionId ? ` - SessionId ${sessionId}`: "";
-      const messages: { level: LoggingLevel; data: string }[] = [
-          { level: "debug", data: `Debug-level message${maybeAppendSessionId}` },
-          { level: "info", data: `Info-level message${maybeAppendSessionId}` },
-          { level: "notice", data: `Notice-level message${maybeAppendSessionId}` },
-          { level: "warning", data: `Warning-level message${maybeAppendSessionId}` },
-          { level: "error", data: `Error-level message${maybeAppendSessionId}` },
-          { level: "critical", data: `Critical-level message${maybeAppendSessionId}` },
-          { level: "alert", data: `Alert level-message${maybeAppendSessionId}` },
-          { level: "emergency", data: `Emergency-level message${maybeAppendSessionId}` },
-      ];
+    const maybeAppendSessionId = sessionId ? ` - SessionId ${sessionId}` : "";
+    const messages: { level: LoggingLevel; data: string }[] = [
+      { level: "debug", data: `Debug-level message${maybeAppendSessionId}` },
+      { level: "info", data: `Info-level message${maybeAppendSessionId}` },
+      { level: "notice", data: `Notice-level message${maybeAppendSessionId}` },
+      {
+        level: "warning",
+        data: `Warning-level message${maybeAppendSessionId}`,
+      },
+      { level: "error", data: `Error-level message${maybeAppendSessionId}` },
+      {
+        level: "critical",
+        data: `Critical-level message${maybeAppendSessionId}`,
+      },
+      { level: "alert", data: `Alert level-message${maybeAppendSessionId}` },
+      {
+        level: "emergency",
+        data: `Emergency-level message${maybeAppendSessionId}`,
+      },
+    ];
 
-      if (!logsUpdateInterval) {
-          console.error("Starting logs update interval");
-          logsUpdateInterval = setInterval(async () => {
-          await server.sendLoggingMessage( messages[Math.floor(Math.random() * messages.length)], sessionId);
+    if (!logsUpdateInterval) {
+      console.error("Starting logs update interval");
+      logsUpdateInterval = setInterval(async () => {
+        await server.sendLoggingMessage(
+          messages[Math.floor(Math.random() * messages.length)],
+          sessionId,
+        );
       }, 15000);
     }
   };
@@ -234,7 +251,7 @@ export const createServer = () => {
     context: string,
     uri: string,
     maxTokens: number = 100,
-    sendRequest: SendRequest
+    sendRequest: SendRequest,
   ) => {
     const request: CreateMessageRequest = {
       method: "sampling/createMessage",
@@ -256,16 +273,15 @@ export const createServer = () => {
     };
 
     return await sendRequest(request, CreateMessageResultSchema);
-
   };
 
   const requestElicitation = async (
     message: string,
     requestedSchema: any,
-    sendRequest: SendRequest
+    sendRequest: SendRequest,
   ) => {
     const request: ElicitRequest = {
-      method: 'elicitation/create',
+      method: "elicitation/create",
       params: {
         message,
         requestedSchema,
@@ -423,14 +439,16 @@ export const createServer = () => {
             role: "user",
             content: {
               type: "text",
-              text: `This is a complex prompt with arguments: temperature=${args?.temperature}, style=${args?.style}`,
+              text:
+                `This is a complex prompt with arguments: temperature=${args?.temperature}, style=${args?.style}`,
             },
           },
           {
             role: "assistant",
             content: {
               type: "text",
-              text: "I understand. You've provided a complex prompt with temperature and style arguments. How would you like me to proceed?",
+              text:
+                "I understand. You've provided a complex prompt with temperature and style arguments. How would you like me to proceed?",
             },
           },
           {
@@ -449,7 +467,7 @@ export const createServer = () => {
       const resourceId = parseInt(args?.resourceId as string, 10);
       if (isNaN(resourceId) || resourceId < 1 || resourceId > 100) {
         throw new Error(
-          `Invalid resourceId: ${args?.resourceId}. Must be a number between 1 and 100.`
+          `Invalid resourceId: ${args?.resourceId}. Must be a number between 1 and 100.`,
         );
       }
 
@@ -462,7 +480,8 @@ export const createServer = () => {
             role: "user",
             content: {
               type: "text",
-              text: `This prompt includes Resource ${resourceId}. Please analyze the following resource:`,
+              text:
+                `This prompt includes Resource ${resourceId}. Please analyze the following resource:`,
             },
           },
           {
@@ -535,31 +554,41 @@ export const createServer = () => {
         name: ToolName.STRUCTURED_CONTENT,
         description:
           "Returns structured content along with an output schema for client data validation",
-        inputSchema: zodToJsonSchema(StructuredContentSchema.input) as ToolInput,
-        outputSchema: zodToJsonSchema(StructuredContentSchema.output) as ToolOutput,
+        inputSchema: zodToJsonSchema(
+          StructuredContentSchema.input,
+        ) as ToolInput,
+        outputSchema: zodToJsonSchema(
+          StructuredContentSchema.output,
+        ) as ToolOutput,
       },
       {
         name: ToolName.ZIP_RESOURCES,
-        description: "Compresses the provided resource files (mapping of name to URI, which can be a data URI) to a zip file, which it returns as a data URI resource link.",
+        description:
+          "Compresses the provided resource files (mapping of name to URI, which can be a data URI) to a zip file, which it returns as a data URI resource link.",
         inputSchema: zodToJsonSchema(ZipResourcesInputSchema) as ToolInput,
-      }
+      },
     ];
-    if (clientCapabilities!.roots) tools.push ({
+    if (clientCapabilities!.roots) {
+      tools.push({
         name: ToolName.LIST_ROOTS,
         description:
-            "Lists the current MCP roots provided by the client. Demonstrates the roots protocol capability even though this server doesn't access files.",
+          "Lists the current MCP roots provided by the client. Demonstrates the roots protocol capability even though this server doesn't access files.",
         inputSchema: zodToJsonSchema(ListRootsSchema) as ToolInput,
-    });
-    if (clientCapabilities!.elicitation) tools.push ({
+      });
+    }
+    if (clientCapabilities!.elicitation) {
+      tools.push({
         name: ToolName.ELICITATION,
-        description: "Demonstrates the Elicitation feature by asking the user to provide information about their favorite color, number, and pets.",
+        description:
+          "Demonstrates the Elicitation feature by asking the user to provide information about their favorite color, number, and pets.",
         inputSchema: zodToJsonSchema(ElicitationSchema) as ToolInput,
-    });
+      });
+    }
 
     return { tools };
   });
 
-  server.setRequestHandler(CallToolRequestSchema, async (request,extra) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     const { name, arguments: args } = request.params;
 
     if (name === ToolName.ECHO) {
@@ -576,7 +605,8 @@ export const createServer = () => {
         content: [
           {
             type: "text",
-            text: `The sum of ${validatedArgs.a} and ${validatedArgs.b} is ${sum}.`,
+            text:
+              `The sum of ${validatedArgs.a} and ${validatedArgs.b} is ${sum}.`,
           },
         ],
       };
@@ -601,7 +631,7 @@ export const createServer = () => {
               total: steps,
               progressToken,
             },
-          },{relatedRequestId: extra.requestId});
+          }, { relatedRequestId: extra.requestId });
         }
       }
 
@@ -609,7 +639,8 @@ export const createServer = () => {
         content: [
           {
             type: "text",
-            text: `Long running operation completed. Duration: ${duration} seconds, Steps: ${steps}.`,
+            text:
+              `Long running operation completed. Duration: ${duration} seconds, Steps: ${steps}.`,
           },
         ],
       };
@@ -634,7 +665,7 @@ export const createServer = () => {
         prompt,
         ToolName.SAMPLE_LLM,
         maxTokens,
-        extra.sendRequest
+        extra.sendRequest,
       );
       return {
         content: [
@@ -748,31 +779,31 @@ export const createServer = () => {
       ElicitationSchema.parse(args);
 
       const elicitationResult = await requestElicitation(
-        'What are your favorite things?',
+        "What are your favorite things?",
         {
-          type: 'object',
+          type: "object",
           properties: {
-            color: { type: 'string', description: 'Favorite color' },
+            color: { type: "string", description: "Favorite color" },
             number: {
-              type: 'integer',
-              description: 'Favorite number',
+              type: "integer",
+              description: "Favorite number",
               minimum: 1,
               maximum: 100,
             },
             pets: {
-              type: 'string',
-              enum: ['cats', 'dogs', 'birds', 'fish', 'reptiles'],
-              description: 'Favorite pets',
+              type: "string",
+              enum: ["cats", "dogs", "birds", "fish", "reptiles"],
+              description: "Favorite pets",
             },
           },
         },
-        extra.sendRequest
+        extra.sendRequest,
       );
 
       // Handle different response actions
       const content = [];
 
-      if (elicitationResult.action === 'accept' && elicitationResult.content) {
+      if (elicitationResult.action === "accept" && elicitationResult.content) {
         content.push({
           type: "text",
           text: `✅ User provided their favorite things!`,
@@ -782,14 +813,18 @@ export const createServer = () => {
         const { color, number, pets } = elicitationResult.content;
         content.push({
           type: "text",
-          text: `Their favorites are:\n- Color: ${color || 'not specified'}\n- Number: ${number || 'not specified'}\n- Pets: ${pets || 'not specified'}`,
+          text: `Their favorites are:\n- Color: ${
+            color || "not specified"
+          }\n- Number: ${number || "not specified"}\n- Pets: ${
+            pets || "not specified"
+          }`,
         });
-      } else if (elicitationResult.action === 'decline') {
+      } else if (elicitationResult.action === "decline") {
         content.push({
           type: "text",
           text: `❌ User declined to provide their favorite things.`,
         });
-      } else if (elicitationResult.action === 'cancel') {
+      } else if (elicitationResult.action === "cancel") {
         content.push({
           type: "text",
           text: `⚠️ User cancelled the elicitation dialog.`,
@@ -812,7 +847,8 @@ export const createServer = () => {
       // Add intro text
       content.push({
         type: "text",
-        text: `Here are ${count} resource links to resources available in this server (see full output in tool response if your client does not support resource_link yet):`,
+        text:
+          `Here are ${count} resource links to resources available in this server (see full output in tool response if your client does not support resource_link yet):`,
       });
 
       // Return resource links to actual resources from ALL_RESOURCES
@@ -823,10 +859,11 @@ export const createServer = () => {
           type: "resource_link",
           uri: resource.uri,
           name: resource.name,
-          description: `Resource ${i + 1}: ${resource.mimeType === "text/plain"
-            ? "plaintext resource"
-            : "binary blob resource"
-            }`,
+          description: `Resource ${i + 1}: ${
+            resource.mimeType === "text/plain"
+              ? "plaintext resource"
+              : "binary blob resource"
+          }`,
           mimeType: resource.mimeType,
         });
       }
@@ -841,17 +878,17 @@ export const createServer = () => {
       const weather = {
         temperature: 22.5,
         conditions: "Partly cloudy",
-        humidity: 65
-      }
+        humidity: 65,
+      };
 
       const backwardCompatiblecontent = {
         type: "text",
-        text: JSON.stringify(weather)
-      }
+        text: JSON.stringify(weather),
+      };
 
       return {
         content: [backwardCompatiblecontent],
-        structuredContent: weather
+        structuredContent: weather,
       };
     }
 
@@ -864,16 +901,24 @@ export const createServer = () => {
         try {
           const response = await fetch(fileUrl);
           if (!response.ok) {
-            throw new Error(`Failed to fetch ${fileUrl}: ${response.statusText}`);
+            throw new Error(
+              `Failed to fetch ${fileUrl}: ${response.statusText}`,
+            );
           }
           const arrayBuffer = await response.arrayBuffer();
           zip.file(fileName, arrayBuffer);
         } catch (error) {
-          throw new Error(`Error fetching file ${fileUrl}: ${error instanceof Error ? error.message : String(error)}`);
+          throw new Error(
+            `Error fetching file ${fileUrl}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
         }
       }
 
-      const uri = `data:application/zip;base64,${await zip.generateAsync({ type: "base64" })}`;
+      const uri = `data:application/zip;base64,${await zip.generateAsync({
+        type: "base64",
+      })}`;
 
       return {
         content: [
@@ -895,9 +940,9 @@ export const createServer = () => {
             {
               type: "text",
               text: "The MCP client does not support the roots protocol.\n\n" +
-                "This means the server cannot access information about the client's workspace directories or file system roots."
-            }
-          ]
+                "This means the server cannot access information about the client's workspace directories or file system roots.",
+            },
+          ],
         };
       }
 
@@ -906,29 +951,33 @@ export const createServer = () => {
           content: [
             {
               type: "text",
-              text: "The client supports roots but no roots are currently configured.\n\n" +
+              text:
+                "The client supports roots but no roots are currently configured.\n\n" +
                 "This could mean:\n" +
                 "1. The client hasn't provided any roots yet\n" +
                 "2. The client provided an empty roots list\n" +
-                "3. The roots configuration is still being loaded"
-            }
-          ]
+                "3. The roots configuration is still being loaded",
+            },
+          ],
         };
       }
 
       const rootsList = currentRoots.map((root, index) => {
-        return `${index + 1}. ${root.name || 'Unnamed Root'}\n   URI: ${root.uri}`;
-      }).join('\n\n');
+        return `${index + 1}. ${
+          root.name || "Unnamed Root"
+        }\n   URI: ${root.uri}`;
+      }).join("\n\n");
 
       return {
         content: [
           {
             type: "text",
-            text: `Current MCP Roots (${currentRoots.length} total):\n\n${rootsList}\n\n` +
+            text:
+              `Current MCP Roots (${currentRoots.length} total):\n\n${rootsList}\n\n` +
               "Note: This server demonstrates the roots protocol capability but doesn't actually access files. " +
-              "The roots are provided by the MCP client and can be used by servers that need file system access."
-          }
-        ]
+              "The roots are provided by the MCP client and can be used by servers that need file system access.",
+          },
+        ],
       };
     }
 
@@ -965,64 +1014,73 @@ export const createServer = () => {
   });
 
   // Roots protocol handlers
-  server.setNotificationHandler(RootsListChangedNotificationSchema, async () => {
-    try {
-      // Request the updated roots list from the client
-      const response = await server.listRoots();
-      if (response && 'roots' in response) {
-        currentRoots = response.roots;
+  server.setNotificationHandler(
+    RootsListChangedNotificationSchema,
+    async () => {
+      try {
+        // Request the updated roots list from the client
+        const response = await server.listRoots();
+        if (response && "roots" in response) {
+          currentRoots = response.roots;
 
-        // Log the roots update for demonstration
-        await server.sendLoggingMessage({
+          // Log the roots update for demonstration
+          await server.sendLoggingMessage({
             level: "info",
             logger: "everything-server",
-            data: `Roots updated: ${currentRoots.length} root(s) received from client`,
-        }, sessionId);
-      }
-    } catch (error) {
-      await server.sendLoggingMessage({
+            data:
+              `Roots updated: ${currentRoots.length} root(s) received from client`,
+          }, sessionId);
+        }
+      } catch (error) {
+        await server.sendLoggingMessage({
           level: "error",
           logger: "everything-server",
-          data: `Failed to request roots from client: ${error instanceof Error ? error.message : String(error)}`,
-      }, sessionId);
-    }
-  });
+          data: `Failed to request roots from client: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        }, sessionId);
+      }
+    },
+  );
 
   // Handle post-initialization setup for roots
   server.oninitialized = async () => {
-   clientCapabilities = server.getClientCapabilities();
+    clientCapabilities = server.getClientCapabilities();
 
     if (clientCapabilities?.roots) {
       clientSupportsRoots = true;
       try {
         const response = await server.listRoots();
-        if (response && 'roots' in response) {
+        if (response && "roots" in response) {
           currentRoots = response.roots;
 
           await server.sendLoggingMessage({
-              level: "info",
-              logger: "everything-server",
-              data: `Initial roots received: ${currentRoots.length} root(s) from client`,
+            level: "info",
+            logger: "everything-server",
+            data:
+              `Initial roots received: ${currentRoots.length} root(s) from client`,
           }, sessionId);
         } else {
           await server.sendLoggingMessage({
-              level: "warning",
-              logger: "everything-server",
-              data: "Client returned no roots set",
+            level: "warning",
+            logger: "everything-server",
+            data: "Client returned no roots set",
           }, sessionId);
         }
       } catch (error) {
         await server.sendLoggingMessage({
-            level: "error",
-            logger: "everything-server",
-            data: `Failed to request initial roots from client: ${error instanceof Error ? error.message : String(error)}`,
+          level: "error",
+          logger: "everything-server",
+          data: `Failed to request initial roots from client: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         }, sessionId);
       }
     } else {
       await server.sendLoggingMessage({
-          level: "info",
-          logger: "everything-server",
-          data: "Client does not support MCP roots protocol",
+        level: "info",
+        logger: "everything-server",
+        data: "Client does not support MCP roots protocol",
       }, sessionId);
     }
   };

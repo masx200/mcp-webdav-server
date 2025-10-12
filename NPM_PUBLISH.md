@@ -4,7 +4,8 @@ This document provides instructions for publishing the WebDAV MCP Server to npm.
 
 ## Prerequisites
 
-1. **npm Account**: Create an account on [npmjs.com](https://www.npmjs.com/) if you don't have one
+1. **npm Account**: Create an account on [npmjs.com](https://www.npmjs.com/) if
+   you don't have one
 2. **Login to npm**: Login to your npm account from the command line
    ```bash
    npm login
@@ -12,7 +13,8 @@ This document provides instructions for publishing the WebDAV MCP Server to npm.
 
 ## Preparation
 
-1. **Update Version**: The package follows [semantic versioning](https://semver.org/):
+1. **Update Version**: The package follows
+   [semantic versioning](https://semver.org/):
    - PATCH (1.0.x): Backward compatible bug fixes
    - MINOR (1.x.0): Backward compatible new features
    - MAJOR (x.0.0): Breaking changes
@@ -53,6 +55,7 @@ npm run publish:major
 ```
 
 These scripts will:
+
 1. Update the version number
 2. Run tests and build
 3. Publish to npm
@@ -71,12 +74,17 @@ npm install webdav-mcp-server
 
 ## Notes
 
-- The `prepublishOnly` script runs before publishing to ensure the code is built and tested
-- Only the necessary files are included in the package (specified in the `files` field in package.json)
+- The `prepublishOnly` script runs before publishing to ensure the code is built
+  and tested
+- Only the necessary files are included in the package (specified in the `files`
+  field in package.json)
 - The `.npmignore` file excludes development-related files from the package
 
 ## Troubleshooting
 
-- **Authentication Issues**: If you encounter authentication issues, try `npm logout` and then `npm login` again
-- **Versioning Conflicts**: If the version already exists, update the version number in package.json
-- **Permission Errors**: Ensure you have the appropriate rights to publish the package (especially if using a scoped package)
+- **Authentication Issues**: If you encounter authentication issues, try
+  `npm logout` and then `npm login` again
+- **Versioning Conflicts**: If the version already exists, update the version
+  number in package.json
+- **Permission Errors**: Ensure you have the appropriate rights to publish the
+  package (especially if using a scoped package)

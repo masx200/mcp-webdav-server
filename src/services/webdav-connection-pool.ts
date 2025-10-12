@@ -1,7 +1,7 @@
-import { createClient, WebDAVClient, AuthType } from 'webdav';
-import { createLogger } from '../utils/logger.js';
+import { AuthType, createClient, WebDAVClient } from "webdav";
+import { createLogger } from "../utils/logger.js";
 
-const logger = createLogger('WebDAVConnectionPool');
+const logger = createLogger("WebDAVConnectionPool");
 
 interface WebDAVConnectionOptions {
   rootUrl: string;
@@ -27,7 +27,7 @@ export class WebDAVConnectionPool {
 
   /**
    * Create a new WebDAV connection pool
-   * 
+   *
    * @param options Pool configuration options
    */
   constructor(options: {
@@ -38,41 +38,41 @@ export class WebDAVConnectionPool {
     this.maxIdleTimeMs = options.maxIdleTimeMs || 5 * 60 * 1000; // Default: 5 minutes
     this.maxConnections = options.maxConnections || 10; // Default: 10 connections
     const cleanupIntervalMs = options.cleanupIntervalMs || 60 * 1000; // Default: 1 minute
-    
+
     // Start cleanup interval
     this.cleanupInterval = setInterval(() => {
       this.cleanupIdleConnections();
     }, cleanupIntervalMs);
-    
+
     // Ensure cleanup happens even if the process exits
-    process.on('exit', () => {
+    process.on("exit", () => {
       this.destroy();
     });
   }
 
   /**
    * Generate a unique key for a connection based on its options
-   * 
+   *
    * @param options Connection options
    * @returns Connection key
    */
   private generateConnectionKey(options: WebDAVConnectionOptions): string {
     const { rootUrl, authEnabled, username } = options;
     // Include authentication details in key only if auth is enabled
-    return authEnabled 
+    return authEnabled
       ? `${rootUrl}:${authEnabled}:${username}`
       : `${rootUrl}:${authEnabled}`;
   }
 
   /**
    * Get a WebDAV client from the pool or create a new one
-   * 
+   *
    * @param options Connection options
    * @returns WebDAV client
    */
   getConnection(options: WebDAVConnectionOptions): WebDAVClient {
     const connectionKey = this.generateConnectionKey(options);
-    
+
     // Check if we have a connection in the pool
     if (this.connections.has(connectionKey)) {
       const connection = this.connections.get(connectionKey)!;
@@ -81,48 +81,48 @@ export class WebDAVConnectionPool {
       logger.debug(`Reusing existing WebDAV connection: ${connectionKey}`);
       return connection.client;
     }
-    
+
     // If we've reached the max connections, remove the oldest one
     if (this.connections.size >= this.maxConnections) {
       this.removeOldestConnection();
     }
-    
+
     // Create new client
     logger.debug(`Creating new WebDAV connection: ${connectionKey}`);
     const client = this.createClient(options);
-    
+
     // Add to pool
     this.connections.set(connectionKey, {
       client,
       lastUsed: Date.now(),
-      connectionKey
+      connectionKey,
     });
-    
+
     return client;
   }
 
   /**
    * Create a new WebDAV client
-   * 
+   *
    * @param options Connection options
    * @returns WebDAV client
    */
   private createClient(options: WebDAVConnectionOptions): WebDAVClient {
     const { rootUrl, authEnabled, username, password } = options;
-    
+
     if (authEnabled && username && password) {
       // Create authenticated client with plain text password
       logger.debug(`Creating authenticated WebDAV client for ${rootUrl}`);
       return createClient(rootUrl, {
         authType: AuthType.Password,
         username,
-        password // Password must be in plain text for WebDAV authentication
+        password, // Password must be in plain text for WebDAV authentication
       });
     } else {
       // Create unauthenticated client
       logger.debug(`Creating unauthenticated WebDAV client for ${rootUrl}`);
       return createClient(rootUrl, {
-        authType: AuthType.None
+        authType: AuthType.None,
       });
     }
   }
@@ -132,10 +132,10 @@ export class WebDAVConnectionPool {
    */
   private removeOldestConnection(): void {
     if (this.connections.size === 0) return;
-    
-    let oldestKey = '';
+
+    let oldestKey = "";
     let oldestTime = Infinity;
-    
+
     // Find the oldest connection
     for (const [key, connection] of this.connections.entries()) {
       if (connection.lastUsed < oldestTime) {
@@ -143,7 +143,7 @@ export class WebDAVConnectionPool {
         oldestKey = key;
       }
     }
-    
+
     if (oldestKey) {
       logger.debug(`Removing oldest connection: ${oldestKey}`);
       this.connections.delete(oldestKey);
@@ -156,19 +156,23 @@ export class WebDAVConnectionPool {
   private cleanupIdleConnections(): void {
     const now = Date.now();
     let removedCount = 0;
-    
+
     for (const [key, connection] of this.connections.entries()) {
       const idleTime = now - connection.lastUsed;
-      
+
       if (idleTime > this.maxIdleTimeMs) {
-        logger.debug(`Removing idle connection: ${key}, idle for ${idleTime}ms`);
+        logger.debug(
+          `Removing idle connection: ${key}, idle for ${idleTime}ms`,
+        );
         this.connections.delete(key);
         removedCount++;
       }
     }
-    
+
     if (removedCount > 0) {
-      logger.info(`Cleaned up ${removedCount} idle WebDAV connections, ${this.connections.size} remaining`);
+      logger.info(
+        `Cleaned up ${removedCount} idle WebDAV connections, ${this.connections.size} remaining`,
+      );
     }
   }
 
@@ -179,7 +183,7 @@ export class WebDAVConnectionPool {
     return {
       activeConnections: this.connections.size,
       maxConnections: this.maxConnections,
-      connectionKeys: Array.from(this.connections.keys())
+      connectionKeys: Array.from(this.connections.keys()),
     };
   }
 
@@ -189,7 +193,7 @@ export class WebDAVConnectionPool {
   destroy(): void {
     clearInterval(this.cleanupInterval);
     this.connections.clear();
-    logger.info('WebDAV connection pool destroyed');
+    logger.info("WebDAV connection pool destroyed");
   }
 }
 
