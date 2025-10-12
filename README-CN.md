@@ -28,10 +28,10 @@
 
 ```bash
 # 全局安装
-npm install -g webdav-mcp-server
+npm install -g @masx200/webdav-mcp-server
 
 # 或使用 npx
-npx webdav-mcp-server
+npx @masx200/webdav-mcp-server
 ```
 
 ### 选项 2：克隆并从源码构建
