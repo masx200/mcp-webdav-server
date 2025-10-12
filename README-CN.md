@@ -1,6 +1,8 @@
 # WebDAV MCP 服务器
 
-一个支持基本认证的 WebDAV 端点 CRUD 操作的模型上下文协议 (MCP) 服务器。该服务器使 Claude Desktop 和其他 MCP 客户端能够通过自然语言命令与 WebDAV 文件系统交互。
+一个支持基本认证的 WebDAV 端点 CRUD 操作的模型上下文协议 (MCP)
+服务器。该服务器使 Claude Desktop 和其他 MCP 客户端能够通过自然语言命令与 WebDAV
+文件系统交互。
 
 ## 功能特性
 
@@ -103,7 +105,8 @@ AUTH_REALM=MCP WebDAV Server
 
 ### MCP 服务器认证的加密密码
 
-为了增强 MCP 服务器（不是 WebDAV 连接）的安全性，您可以使用 bcrypt 加密密码而不是以明文存储它们：
+为了增强 MCP 服务器（不是 WebDAV 连接）的安全性，您可以使用 bcrypt
+加密密码而不是以明文存储它们：
 
 1. 生成 bcrypt 哈希：
 
@@ -120,7 +123,8 @@ AUTH_REALM=MCP WebDAV Server
    AUTH_PASSWORD={bcrypt}$2y$10$CyLKnUwn9fqqKQFEbxpZFuE9mzWR/x8t6TE7.CgAN0oT8I/5jKJBy
    ```
 
-这样，您的 MCP 服务器密码被安全存储。请注意，由于协议要求，WebDAV 密码必须始终是明文。
+这样，您的 MCP 服务器密码被安全存储。请注意，由于协议要求，WebDAV
+密码必须始终是明文。
 
 ## 使用方法
 
@@ -168,13 +172,17 @@ docker-compose up -d
 # - 端口 3000 上的 MCP 服务器（用户名：user，密码：pass）
 ```
 
-此设置使用 [hacdias/webdav](https://github.com/hacdias/webdav)，一个用 Go 编写的简单独立的 WebDAV 服务器。WebDAV 服务器的配置存储在 `webdav_config.yml` 中，您可以修改它来调整权限、添加用户或更改其他设置。
+此设置使用 [hacdias/webdav](https://github.com/hacdias/webdav)，一个用 Go
+编写的简单独立的 WebDAV 服务器。WebDAV 服务器的配置存储在 `webdav_config.yml`
+中，您可以修改它来调整权限、添加用户或更改其他设置。
 
-WebDAV 服务器将所有文件存储在名为 `webdav_data` 的 Docker 卷中，该卷在容器重启时保持持久化。
+WebDAV 服务器将所有文件存储在名为 `webdav_data` 的 Docker
+卷中，该卷在容器重启时保持持久化。
 
 ## WebDAV 服务器配置
 
-`webdav_config.yml` 文件配置了 Docker Compose 设置中使用的 hacdias/webdav 服务器。以下是您可以自定义的内容：
+`webdav_config.yml` 文件配置了 Docker Compose 设置中使用的 hacdias/webdav
+服务器。以下是您可以自定义的内容：
 
 ```yaml
 # 服务器地址和端口
@@ -207,7 +215,8 @@ users:
     password: "{bcrypt}$2y$10$zEP6oofmXFeHaeMfBNLnP.DO8m.H.Mwhd24/TOX2MWLxAExXi4qgi"
 ```
 
-有关更高级的配置选项，请参阅 [hacdias/webdav 文档](https://github.com/hacdias/webdav)。
+有关更高级的配置选项，请参阅
+[hacdias/webdav 文档](https://github.com/hacdias/webdav)。
 
 ## 测试
 
@@ -319,7 +328,8 @@ pnpm test
 ### 基础操作
 
 - "列出我远程 WebDAV 服务器上的文件"
-- "在我的远程 WebDAV 服务器上创建一个名为 notes.txt 的新文本文件，内容为：Hello World"
+- "在我的远程 WebDAV 服务器上创建一个名为 notes.txt 的新文本文件，内容为：Hello
+  World"
 - "从我的远程 WebDAV 服务器获取 document.txt 的内容"
 - "使用这个新配置更新我的远程 WebDAV 服务器上的 config.json"
 - "在我的远程 WebDAV 服务器上创建一个名为 projects 的目录"
@@ -459,4 +469,5 @@ MIT
 - **TypeScript**: 增强类型安全
 - **完整文档**: 详细的使用说明和示例
 
-这些增强功能使 WebDAV MCP Server 成为一个功能完整、性能优异、安全可靠的文件管理解决方案，特别适合复杂的项目管理和开发工作流程。
+这些增强功能使 WebDAV MCP Server
+成为一个功能完整、性能优异、安全可靠的文件管理解决方案，特别适合复杂的项目管理和开发工作流程。

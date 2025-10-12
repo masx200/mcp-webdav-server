@@ -6,7 +6,7 @@ import {
   createAuthMiddleware,
 } from "../middleware/auth-middleware.js";
 import { createLogger } from "../utils/logger.js";
-
+import morgan from "morgan";
 export interface ExpressServerConfig {
   port: number;
   auth?: {
@@ -25,7 +25,7 @@ export function setupExpressServer(
   const logger = createLogger("ExpressServer");
   const app = express();
   app.use(express.json());
-
+  app.use(morgan("combined"));
   // Map to store connected clients
   const clients = new Map<string, SSEServerTransport>();
 
