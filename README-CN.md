@@ -137,7 +137,7 @@ AUTH_REALM=MCP WebDAV Server
 webdav-mcp-server
 
 # 如果使用 npx
-npx webdav-mcp-server
+npx -y @masx200/webdav-mcp-server
 
 # 如果从源码构建
 node dist/index.js
@@ -152,7 +152,7 @@ node dist/index.js
 webdav-mcp-server --http
 
 # 如果使用 npx
-npx webdav-mcp-server --http
+npx -y @masx200/webdav-mcp-server --http
 
 # 如果从源码构建
 node dist/index.js --http

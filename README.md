@@ -33,7 +33,7 @@ commands.
 npm install -g webdav-mcp-server
 
 # Or with npx
-npx webdav-mcp-server
+npx -y @masx200/webdav-mcp-server
 ```
 
 ### Option 2: Clone and build from source
@@ -139,7 +139,7 @@ This mode is ideal for direct integration with Claude Desktop.
 webdav-mcp-server
 
 # If using npx
-npx webdav-mcp-server
+npx -y @masx200/webdav-mcp-server
 
 # If built from source
 node dist/index.js
@@ -155,7 +155,7 @@ for real-time communication.
 webdav-mcp-server --http
 
 # If using npx
-npx webdav-mcp-server --http
+npx -y @masx200/webdav-mcp-server --http
 
 # If built from source
 node dist/index.js --http
@@ -361,7 +361,7 @@ server is connected:
 ### Enhanced Feature Operations
 
 - "Read the first 20 lines of a log file: /logs/app.log"
-- "Search for all JavaScript files: **/*.js, excluding node_modules directory"
+- "Search for all JavaScript files: \*_/_.js, excluding node_modules directory"
 - "Get the tree structure of the project directory"
 - "List the contents of the uploads directory by file size"
 - "Read multiple configuration files simultaneously"
