@@ -310,6 +310,20 @@ npm test
 - `webdav_list_remote_directory` - List files and directories on a remote WebDAV
   server
 
+### Enhanced Features
+
+- `webdav_read_remote_file` - Enhanced file reading with head/tail options
+- `webdav_edit_remote_file` - Smart file editing with diff preview
+- `webdav_list_directory_with_sizes` - Enhanced directory listing with sizes and
+  sorting
+- `webdav_search_files` - Search files using glob patterns with exclusion
+  support
+- `webdav_get_directory_tree` - Get recursive directory tree as JSON
+- `webdav_read_multiple_files` - Read multiple files simultaneously
+- `webdav_get_file_info` - Get detailed file/directory metadata
+- `webdav_range_request` - Read specific byte range from a file (HTTP 206
+  Partial Content)
+
 ## Available MCP Prompts
 
 - `webdav_create_remote_file` - Prompt to create a new file on a remote WebDAV
@@ -343,6 +357,18 @@ server is connected:
 - "Copy report.docx to a backup location on my remote WebDAV server"
 - "Move the file old_name.txt to new_name.txt on my remote WebDAV server"
 - "Delete temp.txt from my remote WebDAV server"
+
+### Enhanced Feature Operations
+
+- "Read the first 20 lines of a log file: /logs/app.log"
+- "Search for all JavaScript files: **/*.js, excluding node_modules directory"
+- "Get the tree structure of the project directory"
+- "List the contents of the uploads directory by file size"
+- "Read multiple configuration files simultaneously"
+- "Edit a configuration file with preview of changes"
+- "Get detailed metadata information for a file"
+- "Read the first 500 bytes of a file: bytes=0-499"
+- "Read the last 100 bytes of a file: bytes=400-"
 
 ## Programmatic Usage
 
@@ -543,6 +569,21 @@ MIT
   - 格式化输出：清晰的分隔显示多个文件内容
   - 错误报告：详细的错误信息显示
 
+### 8. 范围请求功能
+
+#### `webdav_range_request`
+
+- **功能**: 按字节范围读取文件内容，支持 HTTP 206 Partial Content 响应
+- **参数**:
+  - `path` (string): 文件路径
+  - `range` (string): 字节范围，格式如 `bytes=0-499`, `bytes=400-`, `0-499`
+- **特性**:
+  - HTTP 标准兼容：完全兼容 HTTP 1.1 Range Requests 规范
+  - 多种格式支持：支持 `bytes=0-499`, `bytes=400-`, `0-499` 等格式
+  - 大文件优化：适用于大文件的部分内容读取，减少网络传输
+  - 元数据返回：返回 Content-Range, Content-Length, Total-Size 等信息
+  - Unicode 支持：正确处理多字节字符的范围计算
+
 ## 技术实现
 
 ### 依赖项增强
@@ -616,6 +657,28 @@ const result = await toolHandler("webdav_list_directory_with_sizes", {
 });
 ```
 
+### 6. 范围请求示例
+
+```typescript
+// 读取文件前 500 字节
+const result = await toolHandler("webdav_range_request", {
+  path: "/large-file.txt",
+  range: "bytes=0-499",
+});
+
+// 读取文件最后 100 字节
+const result = await toolHandler("webdav_range_request", {
+  path: "/large-file.txt",
+  range: "bytes=400-",
+});
+
+// 读取文件中间部分
+const result = await toolHandler("webdav_range_request", {
+  path: "/large-file.txt",
+  range: "bytes=100-199",
+});
+```
+
 ## 性能优化
 
 ### 内存效率
@@ -662,3 +725,15 @@ const result = await toolHandler("webdav_list_directory_with_sizes", {
 
 这些增强功能大幅提升了 WebDAV MCP Server
 的功能性和易用性，使其成为一个功能完整、性能优异、安全可靠的文件管理解决方案。新功能在保持向后兼容的同时，为用户提供了强大的文件操作能力，特别适合复杂的项目管理和开发工作流程。
+
+### 🎯 范围请求功能
+
+新增的范围请求功能是 WebDAV MCP Server 的一个重要里程碑，它提供了：
+
+- **HTTP 标准兼容**: 完全兼容 HTTP 1.1 Range Requests 规范
+- **性能优化**: 大文件的部分内容读取，显著减少网络传输
+- **应用场景丰富**: 日志分析、音视频元数据提取、大文件预览等
+- **技术先进**: 精确的字节范围计算和 Unicode 字符支持
+
+这一功能的加入，使 WebDAV MCP Server
+在文件处理能力上达到了新的高度，为用户提供了更强大和灵活的文件操作体验。

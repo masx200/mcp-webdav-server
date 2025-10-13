@@ -690,6 +690,78 @@ export function setupToolHandlers(
       }
     },
   );
+
+  // Range request tool
+  server.tool(
+    "webdav_range_request",
+    "Read a specific byte range from a file on a remote WebDAV server (similar to HTTP 206 Partial Content)",
+    {
+      path: z.string().min(1, "Path must not be empty"),
+      range: z.string().describe(
+        'Byte range in format "bytes=0-499" (first 500 bytes), "bytes=500-" (from byte 500 to end), or "0-499" (range from start to end)',
+      ),
+    },
+    async ({ path, range }) => {
+      try {
+        // Check if file exists first
+        const exists = await webdavService.exists(path);
+        if (!exists) {
+          return {
+            content: [{
+              type: "text",
+              text: `Error: File does not exist at ${path}`,
+            }],
+            isError: true,
+          };
+        }
+
+        // Check if range requests are supported
+        const supportsRanges = await webdavService.supportsRangeRequests(path);
+        if (!supportsRanges) {
+          return {
+            content: [{
+              type: "text",
+              text:
+                `Error: Range requests are not supported for this file or server`,
+            }],
+            isError: true,
+          };
+        }
+
+        // Perform the range request
+        const result = await webdavService.readFileWithRange(path, range);
+
+        // Format the response similar to HTTP 206 response
+        const response = [
+          `=== HTTP 206 Partial Content Simulation ===`,
+          `File: ${path}`,
+          `Content-Range: ${result.contentRange}`,
+          `Accept-Ranges: ${result.acceptRanges ? "bytes" : "none"}`,
+          `Content-Length: ${result.content.length}`,
+          `Total-Size: ${result.totalSize}`,
+          `Range-Request: ${range}`,
+          ``,
+          `=== Content ===`,
+          result.content,
+        ].join("\n");
+
+        return {
+          content: [{
+            type: "text",
+            text: response,
+          }],
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: `Error performing range request: ${(error as Error).message}`,
+          }],
+          isError: true,
+        };
+      }
+    },
+  );
 }
 
 // Helper function to format file size

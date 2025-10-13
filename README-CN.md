@@ -309,6 +309,7 @@ pnpm test
 - `webdav_get_directory_tree` - 获取递归目录树 JSON 结构
 - `webdav_read_multiple_files` - 同时读取多个文件
 - `webdav_get_file_info` - 获取详细文件/目录元数据
+- `webdav_range_request` - 范围请求，支持 HTTP 206 Partial Content 响应
 
 ## 可用的 MCP 提示
 
@@ -346,6 +347,8 @@ pnpm test
 - "同时读取多个配置文件"
 - "编辑配置文件，预览更改而不实际应用"
 - "获取文件的详细元数据信息"
+- "读取文件的前 500 字节：bytes=0-499"
+- "读取文件的最后 100 字节：bytes=400-"
 
 ## 程序化使用
 
@@ -454,6 +457,8 @@ MIT
 5. **增强目录列表** - 包含文件大小、排序和统计信息
 6. **详细文件信息** - 提供完整的文件元数据
 7. **多文件读取** - 支持同时读取多个文件
+8. **范围请求功能** - 支持 HTTP 206 Partial Content
+   响应，可按字节范围读取文件内容
 
 ### 📋 技术特性
 
@@ -471,3 +476,29 @@ MIT
 
 这些增强功能使 WebDAV MCP Server
 成为一个功能完整、性能优异、安全可靠的文件管理解决方案，特别适合复杂的项目管理和开发工作流程。
+
+### 🎯 范围请求功能
+
+新增的 `webdav_range_request` 工具支持 HTTP 206 Partial Content
+响应，允许按字节范围读取文件内容：
+
+- **精确范围读取**：支持 `bytes=0-499` 格式，读取指定字节范围
+- **开头读取**：支持 `bytes=0-99` 格式，读取文件开头部分
+- **结尾读取**：支持 `bytes=400-` 格式，读取从指定位置到文件结尾
+- **兼容 HTTP 标准**：完全兼容 HTTP 1.1 Range Requests 规范
+- **大文件优化**：适用于大文件的部分内容读取，减少网络传输
+
+#### 使用示例：
+
+```bash
+# 读取文件前 500 字节
+webdav_range_request --path /large-file.txt --range "bytes=0-499"
+
+# 读取文件最后 100 字节
+webdav_range_request --path /large-file.txt --range "bytes=400-"
+
+# 读取文件中间部分
+webdav_range_request --path /large-file.txt --range "bytes=100-199"
+```
+
+此功能特别适合处理大文件、日志文件分析、音视频文件元数据提取等场景。

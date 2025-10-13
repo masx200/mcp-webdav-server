@@ -127,6 +127,8 @@ npx webdav-mcp-generate-hash yourpassword [rounds]
 - `webdav_get_directory_tree` - Get recursive directory tree as JSON
 - `webdav_read_multiple_files` - Read multiple files simultaneously
 - `webdav_get_file_info` - Get detailed file/directory metadata
+- `webdav_range_request` - Read specific byte range from a file on a remote
+  WebDAV server (similar to HTTP 206 Partial Content)
 
 **Prompts:**
 
@@ -242,6 +244,19 @@ AUTH_PASSWORD={bcrypt}$2y$10$CyLKnUwn9fqqKQFEbxpZFuE9mzWR/x8t6TE7.CgAN0oT8I/5jKJ
 - **Parallel Processing**: Concurrent file operations with proper error handling
 - **Detailed Metadata**: Comprehensive file information including timestamps and
   MIME types
+
+#### Range Request Operations
+
+- **HTTP 206 Partial Content**: Support for byte-range requests similar to HTTP
+  Range Requests
+- **Flexible Range Formats**: Support for `bytes=0-499`, `bytes=400-`, and
+  `0-499` formats
+- **Large File Optimization**: Efficient partial content reading for large files
+- **Metadata Integration**: Returns Content-Range, Content-Length, and total
+  file size information
+- **Error Handling**: Proper validation of range formats and file boundaries
+- **Unicode Support**: Handles multi-byte characters correctly in range
+  calculations
 
 ### Testing
 

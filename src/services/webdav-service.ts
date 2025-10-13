@@ -829,4 +829,166 @@ export class WebDAVService {
 
     return formattedResults;
   }
+
+  /**
+   * Read file content with range request support using createReadStream
+   */
+  async readFileWithRange(
+    path: string,
+    range: string,
+  ): Promise<{
+    content: string;
+    contentRange: string;
+    acceptRanges: boolean;
+    totalSize: number;
+  }> {
+    const fullPath = this.getFullPath(path);
+    logger.debug(`Reading file with range: ${fullPath}`, { range });
+
+    try {
+      // Parse the range header
+      const parsedRange = this.parseRangeHeader(range);
+      if (!parsedRange) {
+        throw new Error("Invalid range format");
+      }
+
+      // Get file stats first to check total size
+      const stats = await this.stat(fullPath);
+      const totalSize = stats.size || 0;
+
+      // Validate range against file size
+      if (parsedRange.start >= totalSize) {
+        throw new Error(
+          `Range start (${parsedRange.start}) is beyond file size (${totalSize})`,
+        );
+      }
+
+      // Calculate actual end position
+      const end = parsedRange.end === undefined
+        ? totalSize - 1
+        : Math.min(parsedRange.end, totalSize - 1);
+
+      // Use createReadStream with range options
+      const stream = this.client.createReadStream(fullPath, {
+        range: {
+          start: parsedRange.start,
+          end: parsedRange.end,
+        },
+      });
+
+      // Convert stream to string
+      const chunks: Buffer[] = [];
+
+      return new Promise((resolve, reject) => {
+        stream.on("data", (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+
+        stream.on("end", () => {
+          try {
+            const content = Buffer.concat(chunks).toString("utf8");
+            const contentRange =
+              `bytes ${parsedRange.start}-${end}/${totalSize}`;
+
+            logger.debug(`Range request completed: ${fullPath}`, {
+              range,
+              contentLength: content.length,
+              totalSize,
+            });
+
+            resolve({
+              content,
+              contentRange,
+              acceptRanges: true,
+              totalSize,
+            });
+          } catch (error) {
+            reject(
+              new Error(
+                `Failed to process stream content: ${(error as Error).message}`,
+              ),
+            );
+          }
+        });
+
+        stream.on("error", (error) => {
+          logger.error(`Stream error for ${fullPath}:`, error);
+          reject(new Error(`Stream error: ${error.message}`));
+        });
+      });
+    } catch (error) {
+      logger.error(`Error reading file with range ${fullPath}:`, error);
+      throw new Error(
+        `Failed to read file with range: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  /**
+   * Parse HTTP Range header
+   */
+  private parseRangeHeader(range: string): {
+    start: number;
+    end?: number;
+  } | null {
+    // Remove "bytes=" prefix if present
+    const rangeValue = range.replace(/^bytes=/i, "").trim();
+
+    // Parse different range formats:
+    // - "0-499": first 500 bytes
+    // - "500-": bytes 500 to end
+    // - "-500": last 500 bytes
+
+    if (rangeValue.includes("-")) {
+      const parts = rangeValue.split("-");
+      const startPart = parts[0]?.trim();
+      const endPart = parts[1]?.trim();
+
+      // Case: "500-" (from byte 500 to end)
+      if (startPart && !endPart) {
+        const start = parseInt(startPart, 10);
+        if (isNaN(start) || start < 0) return null;
+        return { start };
+      }
+
+      // Case: "-500" (last 500 bytes)
+      if (!startPart && endPart) {
+        const suffixLength = parseInt(endPart, 10);
+        if (isNaN(suffixLength) || suffixLength < 0) return null;
+        // We can't handle suffix ranges without knowing file size
+        // This will be handled at the caller level
+        return null;
+      }
+
+      // Case: "0-499" (range from start to end)
+      if (startPart && endPart) {
+        const start = parseInt(startPart, 10);
+        const end = parseInt(endPart, 10);
+        if (isNaN(start) || isNaN(end) || start < 0 || end < 0 || start > end) {
+          return null;
+        }
+        return { start, end };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Check if the server supports range requests
+   */
+  async supportsRangeRequests(path: string = "/"): Promise<boolean> {
+    const fullPath = this.getFullPath(path);
+    logger.debug(`Checking range request support for: ${fullPath}`);
+
+    try {
+      // For WebDAV servers, we'll assume range requests are supported
+      // if we can successfully read file metadata
+      const stats = await this.stat(fullPath);
+      return true;
+    } catch (error) {
+      logger.debug(`Range request support check failed for ${fullPath}`, error);
+      return false;
+    }
+  }
 }
