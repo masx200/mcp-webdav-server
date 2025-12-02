@@ -47,7 +47,7 @@
   "homepage": "https://github.com/masx200/mcp-webdav-server/#readme",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.7.0",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "@types/minimatch": "^6.0.0",
     "@types/morgan": "^1.9.10",
     "basic-auth": "^2.0.1",
