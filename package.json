@@ -53,7 +53,7 @@
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.22.0",
     "minimatch": "^10.0.3",
     "morgan": "^1.10.1",
     "webdav": "^5.8.0",
